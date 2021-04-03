@@ -1,18 +1,80 @@
-import React from 'react';
-import {Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {Calendar, CalendarList, Agenda} from 'react-native-calendars';
+import React, {Component} from 'react';
+import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import {Calendar} from 'react-native-calendars';
+
+class CalendarScreen extends Component {
+    state = {
+        wateringData: [
+            {
+                id: 1,
+                date: 'March 7, 2021',
+                time: '5:00 PM',
+                plant: 'Spinach'
+            },
+            {
+                id: 2,
+                date: 'March 9, 2021',
+                time: '3:00 PM',
+                plant: 'Cauliflower'
+            }
+        ]
+    }
+    render() {
+        return (
+            <ScrollView contentContainerStyle={styles.container}>
+                <View style={styles.topContainer}>
+                    <Text style={{color: '#000000', fontSize: 35, fontWeight: 'bold'}}>
+                        Welcome back!
+                    </Text>
+                </View>
+                <View style={styles.middleContainer}>
+                    <Text style={{fontSize: 18, fontWeight: 'bold'}}>
+                        Upcoming Waters
+                    </Text>
+                    <View style={styles.waterContainer}>
+                        
+                    {this.state.wateringData.map(wateringInfo => (
+                        <View key={wateringInfo.id} style={styles.waterNotif}>
+                            <View style={{display: 'flex', flexDirection: 'row'}}>
+                                <Text style={{flex: 1, fontSize: 18, fontWeight: 'bold', paddingTop: 10, paddingLeft: 10}}>
+                                    {wateringInfo.date}
+                                </Text>
+                                <Text style={{flex: 1, fontSize: 12, fontWeight: 'bold', paddingTop: 15}}>
+                                    Watering{'\n'}
+                                </Text>
+                            </View>
+                            <View style={{display: 'flex', flexDirection: 'row', paddingLeft: 10, paddingBottom: 15}}>
+                                <Text style={{flex: 1, color: 'gray', fontWeight: 'bold'}}>
+                                    {wateringInfo.time}
+                                </Text>
+                                <Text style={{flex: 1, color: 'gray', fontWeight: 'bold'}}>
+                                    {wateringInfo.plant}
+                                </Text>
+                            </View>
+                        </View>
+                    ))}
+    
+                    </View>
+                </View>
+                <View style={styles.bottomContainer}>
+                    <Calendar>
+    
+                    </Calendar>
+                </View>
+            </ScrollView>
+        );
+    }
+}
 
 const styles = StyleSheet.create({
     container: {
         backgroundColor: '#ffffff',
         display: 'flex',
         justifyContent: 'center',
-<<<<<<< HEAD
         alignItems: 'center',
         height: '100%',
-=======
-        alignItems: 'center'
->>>>>>> 462892477f904cf165a9063dc1f192227caedac8
+        alignItems: 'center',
+        height: '100%',
     },
     topContainer: {
         paddingTop: 50,
@@ -80,14 +142,7 @@ function CalendarScreen(props) {
         <View style={styles.container}>
             <View style={styles.topContainer}>
                 <Text style={{color: '#000000', fontSize: 35, fontWeight: 'bold'}}>
-<<<<<<< HEAD
                     Welcome back!
-=======
-                    Welcome back,{'\n'}
-                    <Text style={{color: '#669850'}}>
-                        Liana!
-                    </Text>
->>>>>>> 462892477f904cf165a9063dc1f192227caedac8
                 </Text>
             </View>
             <View style={styles.middleContainer}>
@@ -106,5 +161,4 @@ function CalendarScreen(props) {
         </View>
     );
 }
-
 export default CalendarScreen;

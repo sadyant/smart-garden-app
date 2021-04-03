@@ -17,7 +17,18 @@ export default function App() {
         <NavigationContainer>
             <Stack.Navigator screenOptions={{headerLeft: () => <Logo />}}>
                 <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{headerShown: false}}/>
-                <Stack.Screen name="Home" component={Tabs} options={{title:'Smart Garden', headerTitleStyle: {color:'#669850', fontSize: 20, fontWeight: 'bold'}, headerTitleAlign: 'left', headerTitleContainerStyle: {left: 55}}}/>
+                <Stack.Screen name="Home" 
+                    component={Tabs} 
+                    options={{title:'Smart Garden', 
+                        headerTitleStyle: {
+                            color:'#669850', 
+                            fontSize: 20, 
+                            fontWeight: 'bold'
+                        }, 
+                        headerTitleAlign: 'left', 
+                        headerTitleContainerStyle: {
+                            left: 55
+                        }}}/>
             </Stack.Navigator>
         </NavigationContainer>
     );
