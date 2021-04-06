@@ -2,56 +2,45 @@ import React, { Component } from 'react';
 import {Button, Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {db} from '../config';
 
-let plantsRef = db.ref('/plants');
-let statsRef = db.ref('/stats');
-let settingsRef = db.ref('/settings');
+let ref = db.ref('/');
 const TOTAL_VOLUME = 14748.4;
 
 class Statistics extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            plants: {},
-            stats: {},
-            settings: {},
+            data: {},
             loading: true
         }
     }
     componentDidMount() {
-        plantsRef.on('value', snapshot => {
+        ref.on('value', snapshot => {
             let data = snapshot.val();
-            let plantData = {...data};
+            let allData = {...data};
             this.setState({ 
-                plants: plantData
-            });
-        });
-        statsRef.on('value', snapshot => {
-            let data = snapshot.val();
-            let statsData = {...data};
-            this.setState({ 
-                stats: statsData
-            });
-        });
-        settingsRef.on('value', snapshot => {
-            let data = snapshot.val();
-            let settingsData = {...data};
-            this.setState({ 
-                settings: settingsData,
+                data: allData,
                 loading: false
             });
         });
     }
     getPercentVolume() {
-        let timeElapsed = Date.now() - this.state.stats['last_refilled'];
-        let water_0 = Math.floor(timeElapsed / this.state.plants['plant_0']['water_interval']) * this.state.plants['plant_0']['water_volume'] * 2;
-        let water_1 = Math.floor(timeElapsed / this.state.plants['plant_1']['water_interval']) * this.state.plants['plant_1']['water_volume'] * 2;
-        return Math.floor((TOTAL_VOLUME - water_0 - water_1) / TOTAL_VOLUME * 100)
+        let diff_0 = this.state.data['plants']['plant_0']['last_watered'] - this.state.data['stats']['last_refilled'];
+        let diff_1 = this.state.data['plants']['plant_1']['last_watered'] - this.state.data['stats']['last_refilled'];
+        let water_0 = 0;
+        let water_1 = 0;
+        if (diff_0 > 0) {
+            water_0 = (1 + Math.floor(diff_0 / this.state.data['plants']['plant_0']['water_interval'])) * this.state.data['plants']['plant_0']['water_volume'] * 2;
+        }
+        if (diff_1 > 0) {
+            water_1 = (1 + Math.floor(diff_1 / this.state.data['plants']['plant_1']['water_interval'])) * this.state.data['plants']['plant_1']['water_volume'] * 2;
+        }
+        return Math.max(Math.floor((TOTAL_VOLUME - water_0 - water_1) / TOTAL_VOLUME * 100), 0)
         // console.log(Date.now())
         // return performance.now();
     }
     getDaysLeft0() {
-        let timeElapsed = Date.now() - this.state.stats['last_fertilized_0'];
-        if (this.state.settings['plant_0']['plant'] == 'sapling') {
+        let timeElapsed = Date.now() - this.state.data['stats']['last_fertilized_0'];
+        if (this.state.data['settings']['plant_0']['age'] == 'sapling') {
             return 7 - Math.floor(timeElapsed / 1000 / 60 / 60 / 24);
         } else {
             return 14 - Math.floor(timeElapsed / 1000 / 60 / 60 / 24);
@@ -59,8 +48,8 @@ class Statistics extends Component {
         return null;
     }
     getDaysLeft1() {
-        let timeElapsed = Date.now() - this.state.stats['last_fertilized_1'];
-        if (this.state.settings['plant_1']['plant'] == 'sapling') {
+        let timeElapsed = Date.now() - this.state.data['stats']['last_fertilized_1'];
+        if (this.state.data['settings']['plant_1']['age'] == 'sapling') {
             return 7 - Math.floor(timeElapsed / 1000 / 60 / 60 / 24);
         } else {
             return 14 - Math.floor(timeElapsed / 1000 / 60 / 60 / 24);
@@ -91,7 +80,7 @@ class Statistics extends Component {
                             />
                             <ImageBackground source={require('../assets/blue-circle.png')} style={{flex: 1, width: 125, height: 125, resizeMode: 'center'}}>
                                 <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
-                                    <Text style={{fontSize: 25, fontWeight: 'bold', paddingRight: 60}}>
+                                    <Text style={{fontSize: 25, fontWeight: 'bold', paddingRight: 50}}>
                                         {this.getPercentVolume()}%
                                     </Text>
                                 </View>
@@ -131,7 +120,7 @@ class Statistics extends Component {
                             />
                             <ImageBackground source={require('../assets/green-circle.png')} style={{flex: 1, width: 125, height: 125, resizeMode: 'center'}}>
                                 <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
-                                    <Text style={{fontSize: 25, fontWeight: 'bold', paddingRight: 65}}>
+                                    <Text style={{fontSize: 25, fontWeight: 'bold', paddingRight: 50}}>
                                         {this.getDaysLeft0()} Days
                                     </Text>
                                 </View>
@@ -171,7 +160,7 @@ class Statistics extends Component {
                             />
                             <ImageBackground source={require('../assets/green-circle.png')} style={{flex: 1, width: 125, height: 125, resizeMode: 'center'}}>
                                 <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}}>
-                                    <Text style={{fontSize: 25, fontWeight: 'bold', paddingRight: 65}}>
+                                    <Text style={{fontSize: 25, fontWeight: 'bold', paddingRight: 50}}>
                                         {this.getDaysLeft1()} Days
                                     </Text>
                                 </View>
@@ -239,7 +228,7 @@ const styles = StyleSheet.create({
     },
     potText: {
         paddingTop: 10, 
-        paddingLeft: 70,
+        paddingLeft: 60,
         fontWeight: 'bold',
         fontSize: 18,
         color: 'grey'

@@ -1,70 +1,115 @@
 import React, { Component } from "react";
-import {Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, SafeAreaView} from 'react-native';
 import { Alert, Modal, Pressable } from "react-native";
-import {db} from '../config';
-import {storage} from '../config';
+import Carousel from 'react-native-snap-carousel';
+
 
 class Pots extends Component {
-    constructor(props) {
-        super(props);
-        this.state = { 
-            picture1: '',
-            picture2: '',
-            modalVisible: false,
-            plants: [{
-                id: 0,
-                name: 'Sunflower', 
-                heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
-            }, 
+    state = {
+        index:0,
+        activeIndex:0,
+        carouselItems: [
             {
-                id: 2,
-                name: 'Mayflower',
-                heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
-            }],
-            loading: true
-        }
-        this.getImage('picture1')
-        this.getImage('picture2')
-    }
+                title:"Item 1",
+            },
+            {
+                title:"Item 2",
+            },
+            {
+                title:"Item 3",
+            },
+            {
+                title:"Item 4",
+            },
+            {
+                title:"Item 5",
+            },
+            {
+                title:"Item 6",
+            },
+            {
+                title:"Item 7",
+            },
+
+          ],
+        modalVisible: false,
+        activeIndex:0,
+          carouselItems: [
+          {
+              title:"Item 1",
+          },
+          {
+              title:"Item 2",
+          },
+          {
+              title:"Item 3",
+          },
+          {
+              title:"Item 4",
+          },
+          {
+              title:"Item 5",
+          },
+          {
+              title:"Item 6",
+          },
+          {
+              title:"Item 7",
+          },
+        ],
+        plants: [{
+            id: 0,
+            name: 'Sunflower',
+            heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
+        },
+        {
+            id: 2,
+            name: 'Mayflower',
+            heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
+        }]
+    };
 
 
-    getImage (image) {
-        storage.child(`${image}.jpg`).getDownloadURL().then((url) => {
-          this.setState({
-              image: url
-          })
-        })
-      }
-      
-
-    componentDidMount() {
-        this.setState({ loading: true })
-        db.ref('/images').on('value', snapshot => {
-            let data = snapshot.val() ? snapshot.val() : {};
-            let images = {...data};
-            this.setState({
-                images: images,
-                loading: false
-            });
-        });
-    }
-
-    updateImage(path, val) {
-        db.ref(path).update({
-            images : val
-        })
-
+    _renderItem({item,index}){
+        return (
+          <View style={{
+              backgroundColor:'floralwhite',
+              borderRadius: 5,
+              height: 250,
+              padding: 50,
+              marginLeft: 25,
+              marginRight: 25, }}>
+            <Text style={{fontSize: 30}}>{item.title}</Text>
+            <Text>{item.text}</Text>
+          </View>
+        )
     }
 
     setModalVisible = (visible) => {
         this.setState({ modalVisible: visible });
     }
 
-    render () {
+    _renderItem({item,index}){
+        return (
+          <View style={{
+              backgroundColor:'floralwhite',
+              borderRadius: 5,
+              height: 250,
+              padding: 50,
+              marginLeft: 25,
+              marginRight: 25, }}>
+            <Text style={{fontSize: 30}}>{item.title}</Text>
+            <Text>{item.text}</Text>
+          </View>
+
+        )
+    }
+
+    render() {
         const {modalVisible} = this.state;
-        if (!this.state.loading) {
-            return (
+        return (
             <ScrollView contentContainerStyle={styles.container}>
+
                 <Modal
                     animationType="slide"
                     transparent={true}
@@ -76,18 +121,23 @@ class Pots extends Component {
                     >
                     <View style={styles.centeredView}>
                         <View style={styles.modalView}>
-                        <View style={styles.dbImageContainer}>
-                            <Image
-                                source = {this.state.picture1}
-                                style={{width: 175, height: 175}}
-                                resizeMode='contain'
-                            />
-                        </View>    
+                        <SafeAreaView style={{flex: 1, backgroundColor:'transparent', paddingTop: 50, }}>
+                        <View style={{ flex: 1, flexDirection:'row', justifyContent: 'center', }}>
+                            <Carousel
+                              layout={"default"}
+                              ref={ref => this.carousel = ref}
+                              data={this.state.carouselItems}
+                              sliderWidth={300}
+                              itemWidth={300}
+                              renderItem={this._renderItem}
+                              onSnapToItem = { index => this.setState({activeIndex:index}) } />
+                        </View>
+                        </SafeAreaView>
                         <Pressable
                             style={[styles.button, styles.buttonClose]}
                             onPress={() => this.setModalVisible(!modalVisible)}
                         >
-                            <Text style={styles.textStyle}>Hide Modal</Text>
+                            <Text style={styles.textStyle}>Close</Text>
                         </Pressable>
                         </View>
                     </View>
@@ -101,16 +151,16 @@ class Pots extends Component {
                         </Text>
                     </Text>
                 </View>
-                {this.state.plants.map((plants) => 
+                {this.state.plants.map((plantInfo) =>
                     <TouchableOpacity
-                        key={plants.id}
+                        key={plantInfo.id}
                         onPress={() => this.setModalVisible(true)}
                         style={styles.pot}
                         underlayColor='#d4f0c7'
                     >
-                        <Text style={{fontSize: 25, fontWeight: 'bold'}}>Pot {plants.id+1} and {plants.id+2}</Text>
+                        <Text style={{fontSize: 25, fontWeight: 'bold'}}>Pot {plantInfo.id+1} and {plantInfo.id+2}</Text>
                         <View style={{alignItems: 'center'}}>
-                            <Image 
+                            <Image
                                 source={require('../assets/pot-icon.png')}
                                 style={{width: 175, height: 175}}
                                 resizeMode='contain'
@@ -124,19 +174,14 @@ class Pots extends Component {
                             alignItems: 'center',
                             padding: 3
                         }}>
-                            <Text style={{fontSize: 15}}>{plants.name}</Text>
+                            <Text style={{fontSize: 15}}>{plantInfo.name}</Text>
                         </View>
                     </TouchableOpacity>
                 )}
             </ScrollView>
         );
     }
-    else {
-        return null;
-    }
 }
-}
-
 
 const styles = StyleSheet.create({
     container: {
@@ -182,7 +227,8 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 4,
-        elevation: 5
+        elevation: 5,
+        height: 400
       },
       button: {
         borderRadius: 20,
@@ -203,10 +249,6 @@ const styles = StyleSheet.create({
       modalText: {
         marginBottom: 15,
         textAlign: "center"
-      },
-      dbImageContainer: {
-        backgroundColor : "white"
-      }
-})
+}})
 
 export default Pots;
