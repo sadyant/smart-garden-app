@@ -1,31 +1,70 @@
 import React, { Component } from "react";
 import {Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import { Alert, Modal, Pressable } from "react-native";
+import {db} from '../config';
+import {storage} from '../config';
 
 class Pots extends Component {
-    state = {
-        modalVisible: false,
-        plants: [{
-            id: 0,
-            name: 'Sunflower', 
-            heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
-        }, 
-        {
-            id: 2,
-            name: 'Mayflower',
-            heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
-        }]
-    };
+    constructor(props) {
+        super(props);
+        this.state = { 
+            picture1: '',
+            picture2: '',
+            modalVisible: false,
+            plants: [{
+                id: 0,
+                name: 'Sunflower', 
+                heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
+            }, 
+            {
+                id: 2,
+                name: 'Mayflower',
+                heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
+            }],
+            loading: true
+        }
+        this.getImage('picture1')
+        this.getImage('picture2')
+    }
+
+
+    getImage (image) {
+        storage.child(`${image}.jpg`).getDownloadURL().then((url) => {
+          this.setState({
+              image: url
+          })
+        })
+      }
+      
+
+    componentDidMount() {
+        this.setState({ loading: true })
+        db.ref('/images').on('value', snapshot => {
+            let data = snapshot.val() ? snapshot.val() : {};
+            let images = {...data};
+            this.setState({
+                images: images,
+                loading: false
+            });
+        });
+    }
+
+    updateImage(path, val) {
+        db.ref(path).update({
+            images : val
+        })
+
+    }
 
     setModalVisible = (visible) => {
         this.setState({ modalVisible: visible });
     }
 
-    render() {
+    render () {
         const {modalVisible} = this.state;
-        return (
+        if (!this.state.loading) {
+            return (
             <ScrollView contentContainerStyle={styles.container}>
-
                 <Modal
                     animationType="slide"
                     transparent={true}
@@ -37,7 +76,13 @@ class Pots extends Component {
                     >
                     <View style={styles.centeredView}>
                         <View style={styles.modalView}>
-                        <Text style={styles.modalText}>Hello World!</Text>
+                        <View style={styles.dbImageContainer}>
+                            <Image
+                                source = {this.state.picture1}
+                                style={{width: 175, height: 175}}
+                                resizeMode='contain'
+                            />
+                        </View>    
                         <Pressable
                             style={[styles.button, styles.buttonClose]}
                             onPress={() => this.setModalVisible(!modalVisible)}
@@ -56,14 +101,14 @@ class Pots extends Component {
                         </Text>
                     </Text>
                 </View>
-                {this.state.plants.map((plantInfo) => 
+                {this.state.plants.map((plants) => 
                     <TouchableOpacity
-                        key={plantInfo.id}
+                        key={plants.id}
                         onPress={() => this.setModalVisible(true)}
                         style={styles.pot}
                         underlayColor='#d4f0c7'
                     >
-                        <Text style={{fontSize: 25, fontWeight: 'bold'}}>Pot {plantInfo.id+1} and {plantInfo.id+2}</Text>
+                        <Text style={{fontSize: 25, fontWeight: 'bold'}}>Pot {plants.id+1} and {plants.id+2}</Text>
                         <View style={{alignItems: 'center'}}>
                             <Image 
                                 source={require('../assets/pot-icon.png')}
@@ -79,14 +124,19 @@ class Pots extends Component {
                             alignItems: 'center',
                             padding: 3
                         }}>
-                            <Text style={{fontSize: 15}}>{plantInfo.name}</Text>
+                            <Text style={{fontSize: 15}}>{plants.name}</Text>
                         </View>
                     </TouchableOpacity>
                 )}
             </ScrollView>
         );
     }
+    else {
+        return null;
+    }
 }
+}
+
 
 const styles = StyleSheet.create({
     container: {
@@ -153,6 +203,9 @@ const styles = StyleSheet.create({
       modalText: {
         marginBottom: 15,
         textAlign: "center"
+      },
+      dbImageContainer: {
+        backgroundColor : "white"
       }
 })
 
