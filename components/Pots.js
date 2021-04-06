@@ -2,72 +2,72 @@ import React, { Component } from "react";
 import {Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, SafeAreaView} from 'react-native';
 import { Alert, Modal, Pressable } from "react-native";
 import Carousel from 'react-native-snap-carousel';
+import { db } from "../config";
 
 
 class Pots extends Component {
-    state = {
-        index:0,
-        activeIndex:0,
-        carouselItems: [
-            {
-                title:"Item 1",
-            },
-            {
-                title:"Item 2",
-            },
-            {
-                title:"Item 3",
-            },
-            {
-                title:"Item 4",
-            },
-            {
-                title:"Item 5",
-            },
-            {
-                title:"Item 6",
-            },
-            {
-                title:"Item 7",
-            },
-
-          ],
-        modalVisible: false,
-        activeIndex:0,
-          carouselItems: [
-          {
-              title:"Item 1",
-          },
-          {
-              title:"Item 2",
-          },
-          {
-              title:"Item 3",
-          },
-          {
-              title:"Item 4",
-          },
-          {
-              title:"Item 5",
-          },
-          {
-              title:"Item 6",
-          },
-          {
-              title:"Item 7",
-          },
-        ],
-        plants: [{
-            id: 0,
-            name: 'Sunflower',
-            heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
-        },
-        {
-            id: 2,
-            name: 'Mayflower',
-            heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
-        }]
-    };
+        constructor(props) {
+        super(props);
+        this.state = {
+            plant_0_settings: {},
+            plant_1_settings: {},
+            plant_types: {},
+            lst_plant_types: [],
+            loading: true
+        }
+    }
+    componentDidMount() {
+        db.ref('/settings').on('value', snapshot => {
+            let data = snapshot.val() ? snapshot.val() : {};
+            let settings = {...data};
+            this.setState({
+                plant_0_settings: settings["plant_0"],
+                plant_1_settings: settings["plant_1"],
+                plant_types: settings["plant_watering_frequency"],
+                loading: false,
+                index:0,
+                activeIndex:0,                         
+                carouselItems: [
+                    {
+                        title:"Today",
+        
+                    },
+                    {
+                        title:"1 day ago",
+                    },
+                    {
+                        title:"2 days ago",
+                    },
+                    {
+                        title:"3 days ago",
+                    },
+                    {
+                        title:"4 days ago",
+                    },
+                    {
+                        title:"5 days ago",
+                    },
+                    {
+                        title:"6 days ago",
+                    },
+        
+                  ],
+                modalVisible: false,
+                activeIndex:0,
+                
+                plants: [{
+                    id: 0,
+                    name: settings['plant_0']['plant'],
+                    heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
+                },
+                {
+                    id: 2,
+                    name: settings['plant_1']['plant'],
+                    heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
+                }]
+            });
+        });
+    }
 
 
     _renderItem({item,index}){
@@ -95,10 +95,15 @@ class Pots extends Component {
               backgroundColor:'floralwhite',
               borderRadius: 5,
               height: 250,
-              padding: 50,
+              padding: 20,
               marginLeft: 25,
               marginRight: 25, }}>
             <Text style={{fontSize: 30}}>{item.title}</Text>
+            <Image
+                source={require(`../assets/timed_pictures/Today.png`)}
+                style={{width: 175, height: 175}}
+                resizeMode='contain'
+            />
             <Text>{item.text}</Text>
           </View>
 
@@ -107,6 +112,7 @@ class Pots extends Component {
 
     render() {
         const {modalVisible} = this.state;
+        if (!this.state.loading) {
         return (
             <ScrollView contentContainerStyle={styles.container}>
 
@@ -151,14 +157,14 @@ class Pots extends Component {
                         </Text>
                     </Text>
                 </View>
-                {this.state.plants.map((plantInfo) =>
+                {this.state.plants.map((plants) =>
                     <TouchableOpacity
-                        key={plantInfo.id}
+                        key={plants.id}
                         onPress={() => this.setModalVisible(true)}
                         style={styles.pot}
                         underlayColor='#d4f0c7'
                     >
-                        <Text style={{fontSize: 25, fontWeight: 'bold'}}>Pot {plantInfo.id+1} and {plantInfo.id+2}</Text>
+                        <Text style={{fontSize: 25, fontWeight: 'bold'}}>Pot {plants.id+1} and {plants.id+2}</Text>
                         <View style={{alignItems: 'center'}}>
                             <Image
                                 source={require('../assets/pot-icon.png')}
@@ -174,14 +180,17 @@ class Pots extends Component {
                             alignItems: 'center',
                             padding: 3
                         }}>
-                            <Text style={{fontSize: 15}}>{plantInfo.name}</Text>
+                            <Text style={{fontSize: 15}}>{plants.name}</Text>
                         </View>
                     </TouchableOpacity>
                 )}
             </ScrollView>
         );
     }
-}
+    else {
+        return null;
+    }
+} }
 
 const styles = StyleSheet.create({
     container: {
