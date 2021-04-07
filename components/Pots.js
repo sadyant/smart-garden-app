@@ -1,263 +1,221 @@
-import React, { Component } from "react";
-import {Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, SafeAreaView} from 'react-native';
-import { Alert, Modal, Pressable } from "react-native";
-import Carousel from 'react-native-snap-carousel';
-import { db } from "../config";
+import React, {Component} from 'react';
+import {ScrollView, StyleSheet, Text, View, Platform} from 'react-native';
+import {Calendar} from 'react-native-calendars';
+import {db} from "../config";
 
+class Home extends Component {
 
-class Pots extends Component {
-        constructor(props) {
-        super(props);
-        this.state = {
-            plant_0_settings: {},
-            plant_1_settings: {},
-            plant_types: {},
-            lst_plant_types: [],
-            loading: true
-        }
-    }
-    componentDidMount() {
-        db.ref('/settings').on('value', snapshot => {
-            let data = snapshot.val() ? snapshot.val() : {};
-            let settings = {...data};
-            this.setState({
-                plant_0_settings: settings["plant_0"],
-                plant_1_settings: settings["plant_1"],
-                plant_types: settings["plant_watering_frequency"],
-                loading: false,
-                index:0,
-                activeIndex:0,                         
-                carouselItems: [
-                    {
-                        title:"Today",
-        
-                    },
-                    {
-                        title:"1 day ago",
-                    },
-                    {
-                        title:"2 days ago",
-                    },
-                    {
-                        title:"3 days ago",
-                    },
-                    {
-                        title:"4 days ago",
-                    },
-                    {
-                        title:"5 days ago",
-                    },
-                    {
-                        title:"6 days ago",
-                    },
-        
-                  ],
-                modalVisible: false,
-                activeIndex:0,
-                
-                plants: [{
-                    id: 0,
-                    name: settings['plant_0']['plant'],
-                    heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
-                },
-                {
-                    id: 2,
-                    name: settings['plant_1']['plant'],
-                    heights: [2, 2.1, 2.3, 2.3, 2.4, null, null]
-                }]
-            });
-        });
-    }
+    constructor(props) {
+        super(props)
+        this.state = {
+            waters: [],
+            dates: {},
+            loading: true
+        }
+    }
 
+    componentDidMount() {
+        db.ref("/").on("value", snapshot => {
+            let data = snapshot.val() ? snapshot.val() : {};
+            let info = {...data};
 
-    _renderItem({item,index}){
-        return (
-          <View style={{
-              backgroundColor:'floralwhite',
-              borderRadius: 5,
-              height: 250,
-              padding: 50,
-              marginLeft: 25,
-              marginRight: 25, }}>
-            <Text style={{fontSize: 30}}>{item.title}</Text>
-            <Text>{item.text}</Text>
-          </View>
-        )
-    }
+            this.setState({
+                waters: [{
+                    id: 1,
+                    last_watered: info["plants"]["plant_0"]["last_watered"],
+                    interval: info["plants"]["plant_0"]["water_interval"],
+                    plant: info["settings"]["plant_0"]["plant"]
+                },
+                {
+                    id: 2,
+                    last_watered: info["plants"]["plant_1"]["last_watered"],
+                    interval: info["plants"]["plant_1"]["water_interval"],
+                    plant: info["settings"]["plant_1"]["plant"]
+                }],
+                loading: false
+            })
+        })
+    }
 
-    setModalVisible = (visible) => {
-        this.setState({ modalVisible: visible });
-    }
+    getFrequency(age, plant_name) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                if (age == "plant") {
+                    switch(this.state.plant_types[plant_name]) {
+                        case "very low":
+                            resolve("1209600000")
+                        case "low":
+                            resolve("604800000")
+                        case "moderate":
+                            resolve("302400000")
+                    }
+                }
+                else if (age == "sapling") { // age == "sapling"
+                    switch(this.state.plant_types[plant_name]) {
+                        case "very low":
+                            resolve("604800000")
+                        case "low":
+                            resolve("302400000")
+                        case "moderate":
+                            resolve("151200000")
+                    }
+                }
+            }, 1000)
+        })
+      }
 
-    _renderItem({item,index}){
-        return (
-          <View style={{
-              backgroundColor:'floralwhite',
-              borderRadius: 5,
-              height: 250,
-              padding: 20,
-              marginLeft: 25,
-              marginRight: 25, }}>
-            <Text style={{fontSize: 30}}>{item.title}</Text>
-            <Image
-                source={require(`../assets/timed_pictures/Today.png`)}
-                style={{width: 175, height: 175}}
-                resizeMode='contain'
-            />
-            <Text>{item.text}</Text>
-          </View>
+    getDate(milliseconds) {
+        const dateObject = new Date(milliseconds)
+        return dateObject.toLocaleDateString("en-US")
+    }
 
-        )
-    }
+    getTime(milliseconds) {
+        const dateObject = new Date(milliseconds)
+        return dateObject.toLocaleTimeString()
+    }
+    CalendarMarker() {
+        let items = []
+        console.log(this.state.waters.length)
+        for (let i = 0; i < this.state.waters.length; i++) {
+          var date = new Date(parseInt(this.state.waters[i]['last_watered']) + parseInt(this.state.waters[i]['interval'])); // Date 2011-05-09T06:08:45.178Z
+          var year = date.getFullYear();
+          var month = ("0" + (date.getMonth() + 1)).slice(-2);
+          var day = ("0" + date.getDate()).slice(-2);
 
-    render() {
-        const {modalVisible} = this.state;
-        if (!this.state.loading) {
-        return (
-            <ScrollView contentContainerStyle={styles.container}>
+          items.push(`${year}-${month}-${day}`);
+        }
 
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => {
-                        Alert.alert("Modal has been closed.");
-                        this.setModalVisible(!modalVisible);
-                    }}
-                    >
-                    <View style={styles.centeredView}>
-                        <View style={styles.modalView}>
-                        <SafeAreaView style={{flex: 1, backgroundColor:'transparent', paddingTop: 50, }}>
-                        <View style={{ flex: 1, flexDirection:'row', justifyContent: 'center', }}>
-                            <Carousel
-                              layout={"default"}
-                              ref={ref => this.carousel = ref}
-                              data={this.state.carouselItems}
-                              sliderWidth={300}
-                              itemWidth={300}
-                              renderItem={this._renderItem}
-                              onSnapToItem = { index => this.setState({activeIndex:index}) } />
-                        </View>
-                        </SafeAreaView>
-                        <Pressable
-                            style={[styles.button, styles.buttonClose]}
-                            onPress={() => this.setModalVisible(!modalVisible)}
-                        >
-                            <Text style={styles.textStyle}>Close</Text>
-                        </Pressable>
-                        </View>
-                    </View>
-                </Modal>
+        const result = {}
+          for (let i = 0; i <= items.length; i++) {
+              result[items[i]] = {marked : true};
+          }
+        console.log(items)
 
-                <View style={styles.topContainer}>
-                    <Text style={{color: '#000000', fontSize: 45, fontWeight: 'bold'}}>
-                        My{' '}
-                        <Text style={{color: '#669850'}}>
-                            Garden
-                        </Text>
-                    </Text>
-                </View>
-                {this.state.plants.map((plants) =>
-                    <TouchableOpacity
-                        key={plants.id}
-                        onPress={() => this.setModalVisible(true)}
-                        style={styles.pot}
-                        underlayColor='#d4f0c7'
-                    >
-                        <Text style={{fontSize: 25, fontWeight: 'bold'}}>Pot {plants.id+1} and {plants.id+2}</Text>
-                        <View style={{alignItems: 'center'}}>
-                            <Image
-                                source={require('../assets/pot-icon.png')}
-                                style={{width: 175, height: 175}}
-                                resizeMode='contain'
-                            />
-                        </View>
-                        <View style={{
-                            backgroundColor: '#ffffff',
-                            borderRadius: 20,
-                            borderWidth: 1,
-                            borderColor: '#ffffff',
-                            alignItems: 'center',
-                            padding: 3
-                        }}>
-                            <Text style={{fontSize: 15}}>{plants.name}</Text>
-                        </View>
-                    </TouchableOpacity>
-                )}
-            </ScrollView>
-        );
-    }
-    else {
-        return null;
-    }
-} }
+        return result
+      }
+
+    render() {
+        if (!this.state.loading) {
+            return (
+                <ScrollView contentContainerStyle={styles.container}>
+                    <View style={styles.topContainer}>
+                        <Text style={{color: '#000000', fontSize: 35, fontWeight: 'bold'}}>
+                            Welcome back!
+                        </Text>
+                    </View>
+                    <View style={styles.middleContainer}>
+                        <Text style={{fontSize: 18, fontWeight: 'bold'}}>
+                            Upcoming Waters
+                        </Text>
+                        <View style={styles.waterContainer}>
+
+                        {this.state.waters.map(wateringInfo => (
+                            <View key={wateringInfo.id} style={styles.waterNotif}>
+                                <View style={{display: 'flex', flexDirection: 'row'}}>
+                                    <Text style={{flex: 1, padding: 20}}>
+                                        <Text style={{fontSize: 24, fontWeight: 'bold'}}>
+                                            {this.getDate(parseInt(wateringInfo.last_watered) + parseInt(wateringInfo.interval))}{'\n'}
+                                        </Text>
+                                        <Text style={{fontSize: 18, color: "#666666"}}>
+                                            {this.getTime(parseInt(wateringInfo.last_watered) + parseInt(wateringInfo.interval))}
+                                        </Text>
+                                    </Text>
+                                    <Text style={{flex: 1, padding: 20}}>
+                                        <Text style={{fontSize: 20, fontWeight: "bold"}}>
+                                            Watering{'\n'}
+                                        </Text>
+                                        <Text style={{fontSize: 18, color: "#666666"}}>
+                                            {wateringInfo.plant.replace(/_/g, " ")}
+                                        </Text>
+                                    </Text>
+                                    <View style={styles.CircleShape} />
+
+                                </View>
+                            </View>
+                        ))}
+
+                        </View>
+                    </View>
+                    <View style={styles.bottomContainer}>
+                        <Calendar
+                            markedDates={
+                              this.CalendarMarker()
+                            }
+                        />
+
+                    </View>
+                </ScrollView>
+            );
+        }
+        else {
+            return null
+        }
+    }
+}
 
 const styles = StyleSheet.create({
-    container: {
-        backgroundColor: '#ffffff',
-        alignItems: 'center'
-    },
-    topContainer: {
-        marginVertical: 25,
-        width: '90%'
-    },
-    pot: {
-        flex: 1,
-        height: 300,
-        backgroundColor: '#e1eed3',
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: '#ffffff',
-        padding: 20,
-        margin: 5
-    },
-    potRow: {
-        width: '95%',
-        display: 'flex',
-        flexDirection: 'row'
-    },
+    container: {
+        backgroundColor: '#ffffff',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100%',
+    },
+    topContainer: {
+        paddingTop: 50,
+        width: '90%'
+    },
+    middleContainer: {
+        paddingTop: 50,
+        width: '90%'
+    },
+    bottomContainer: {
+        paddingTop: 25,
+        paddingBottom: 50,
+        width: '90%'
+    },
+    waterContainer: {
+        marginTop: 10
+    },
+    waterNotif: {
+        backgroundColor: '#d4f0c7',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#ffffff',
+        marginTop: 10
+    },
+    CircleShape: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: 'deepskyblue',
+      justifyContent: 'center',
+      paddingTop: 50,
+      paddingBottom: 50
+    },
+    dot1: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: 'deepskyblue',
+      justifyContent: 'center',
+    },
+    CircleShape1: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: 'slateblue',
+      justifyContent: 'center',
+      paddingTop: 50,
+      paddingBottom: 50
+    },
+    dot1: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: 'slateblue',
+      justifyContent: 'center',
+    }
+})
 
-    centeredView: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop: 22
-      },
-      modalView: {
-        margin: 20,
-        backgroundColor: "white",
-        borderRadius: 20,
-        padding: 35,
-        alignItems: "center",
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
-        height: 400
-      },
-      button: {
-        borderRadius: 20,
-        padding: 10,
-        elevation: 2
-      },
-      buttonOpen: {
-        backgroundColor: "#F194FF",
-      },
-      buttonClose: {
-        backgroundColor: "#2196F3",
-      },
-      textStyle: {
-        color: "white",
-        fontWeight: "bold",
-        textAlign: "center"
-      },
-      modalText: {
-        marginBottom: 15,
-        textAlign: "center"
-}})
-
-export default Pots;
+export default Home;
