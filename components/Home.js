@@ -5,68 +5,91 @@ import {db} from "../config";
 
 class Home extends Component {
 
-    constructor(props) {
-        super(props)
-        this.state = {
-            waters: [],
-            dates: {},
-            loading: true
-        }
-    }
+    constructor(props) {
+        super(props)
+        this.state = {
+            waters: [],
+            dates: {},
+            loading: true
+        }
+    }
 
-    componentDidMount() {
-        db.ref("/").on("value", snapshot => {
-            let data = snapshot.val() ? snapshot.val() : {};
-            let info = {...data};
-            let items = []
-            for (let i = 1; i <= 31; i++) {
-              items.push('2021-' + toString(new Date().getMonth() + 1) + '-' + i)
-            }
-            this.setState({
-                waters: [{
-                    id: 1,
-                    last_watered: info["plants"]["plant_0"]["last_watered"],
-                    interval: info["plants"]["plant_0"]["water_interval"],
-                    plant: info["settings"]["plant_0"]["plant"]
-                },
-                {
-                    id: 2,
-                    last_watered: info["plants"]["plant_1"]["last_watered"],
-                    interval: info["plants"]["plant_1"]["water_interval"],
-                    plant: info["settings"]["plant_1"]["plant"]
-                }],
-                dates: items,
-                loading: false
-            })
-        })
-    }
+    componentDidMount() {
+        db.ref("/").on("value", snapshot => {
+            let data = snapshot.val() ? snapshot.val() : {};
+            let info = {...data};
 
-    getFrequency(age, plant_name) {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                if (age == "plant") {
-                    switch(this.state.plant_types[plant_name]) {
-                        case "very low":
-                            resolve("1209600000")
-                        case "low":
-                            resolve("604800000")
-                        case "moderate":
-                            resolve("302400000")
-                    }
-                }
-                else if (age == "sapling") { // age == "sapling"
-                    switch(this.state.plant_types[plant_name]) {
-                        case "very low":
-                            resolve("604800000")
-                        case "low":
-                            resolve("302400000")
-                        case "moderate":
-                            resolve("151200000")
-                    }
-                }
-            }, 1000)
-        })
-      }
+            this.setState({
+                waters: [{
+                    id: 1,
+                    last_watered: info["plants"]["plant_0"]["last_watered"],
+                    interval: info["plants"]["plant_0"]["water_interval"],
+                    plant: info["settings"]["plant_0"]["plant"]
+                },
+                {
+                    id: 2,
+                    last_watered: info["plants"]["plant_1"]["last_watered"],
+                    interval: info["plants"]["plant_1"]["water_interval"],
+                    plant: info["settings"]["plant_1"]["plant"]
+                }],
+                loading: false
+            })
+        })
+    }
+
+    getFrequency(age, plant_name) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                if (age == "plant") {
+                    switch(this.state.plant_types[plant_name]) {
+                        case "very low":
+                            resolve("1209600000")
+                        case "low":
+                            resolve("604800000")
+                        case "moderate":
+                            resolve("302400000")
+                    }
+                }
+                else if (age == "sapling") { // age == "sapling"
+                    switch(this.state.plant_types[plant_name]) {
+                        case "very low":
+                            resolve("604800000")
+                        case "low":
+                            resolve("302400000")
+                        case "moderate":
+                            resolve("151200000")
+                    }
+                }
+            }, 1000)
+        })
+      }
+
+    getDate(milliseconds) {
+        const dateObject = new Date(milliseconds)
+        return dateObject.toLocaleDateString("en-US")
+    }
+
+    getTime(milliseconds) {
+        const dateObject = new Date(milliseconds)
+        return dateObject.toLocaleTimeString()
+    }
+    CalendarMarker() {
+        let items = []
+        for (let i = 0; i < this.state.waters.length; i++) {
+          var date = new Date(parseInt(this.state.waters[i]['last_watered']) + parseInt(this.state.waters[i]['interval'])); // Date 2011-05-09T06:08:45.178Z
+          var year = date.getFullYear();
+          var month = ("0" + (date.getMonth() + 1)).slice(-2);
+          var day = ("0" + date.getDate()).slice(-2);
+
+          items.push(`${year}-${month}-${day}`);
+        }
+
+        const result = {}
+      	for (let i = 0; i <= items.length; i++) {
+      		result[items[i]] = {marked : true};
+      	}
+        return result
+      }
 
     render() {
         if (!this.state.loading) {
@@ -81,40 +104,43 @@ class Home extends Component {
                         </Text>
                     </View>
                     <View style={styles.middleContainer}>
-                        <Text style={{fontSize: 30, fontWeight: 'bold'}}>
+                        <Text style={{fontSize: 18, fontWeight: 'bold'}}>
                             Upcoming Waters
                         </Text>
                         <View style={styles.waterContainer}>
-                            
-                        {this.state.waters.map(wateringInfo => (
-                            <View key={wateringInfo.id} style={styles.waterNotif}>
-                                <View style={{display: 'flex', flexDirection: 'row'}}>
-                                    <Text style={{flex: 1, padding: 20}}>
-                                        <Text style={{fontSize: 24, fontWeight: 'bold'}}>
-                                            {this.getDate(parseInt(wateringInfo.last_watered) + parseInt(wateringInfo.interval))}{'\n'}
+                            {this.state.waters.map(wateringInfo => (
+                                <View key={wateringInfo.id} style={styles.waterNotif}>
+                                    <View style={{display: 'flex', flexDirection: 'row'}}>
+                                        <Text style={{flex: 1, padding: 20}}>
+                                            <Text style={{fontSize: 18, fontWeight: 'bold'}}>
+                                                {this.getDate(parseInt(wateringInfo.last_watered) + parseInt(wateringInfo.interval))}{'\n'}
+                                            </Text>
+                                            <Text style={{fontSize: 12, fontWeight: 'bold', color: "grey"}}>
+                                                {this.getTime(parseInt(wateringInfo.last_watered) + parseInt(wateringInfo.interval))}
+                                            </Text>
                                         </Text>
-                                        <Text style={{fontSize: 18, color: "#666666"}}>
-                                            {this.getTime(parseInt(wateringInfo.last_watered) + parseInt(wateringInfo.interval))}
+                                        <Text style={{flex: 1, padding: 20}}>
+                                            <Text style={{fontSize: 18, fontWeight: "bold"}}>
+                                                Watering{'\n'}
+                                            </Text>
+                                            <Text style={{fontSize: 12, fontWeight: 'bold', color: "grey"}}>
+                                                {wateringInfo.plant.replace(/_/g, " ")}
+                                            </Text>
                                         </Text>
-                                    </Text>
-                                    <Text style={{flex: 1, padding: 20}}>
-                                        <Text style={{fontSize: 20, fontWeight: "bold"}}>
-                                            Watering{'\n'}
-                                        </Text>
-                                        <Text style={{fontSize: 18, color: "#666666"}}>
-                                            {wateringInfo.plant.replace(/_/g, " ")}
-                                        </Text>
-                                    </Text>
+                                        <View style={styles.CircleShape} />
+
+                                    </View>
                                 </View>
-                            </View>
-                        ))}
-        
+                            ))}
                         </View>
                     </View>
                     <View style={styles.bottomContainer}>
-                        <Calendar>
-        
-                        </Calendar>
+                        <Calendar
+                            markedDates={
+                              this.CalendarMarker()
+                            }
+                        />
+
                     </View>
                 </ScrollView>
             );
@@ -151,7 +177,17 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ffffff',
         marginTop: 10
+    },
+    CircleShape: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: 'deepskyblue',
+      justifyContent: 'center',
+      paddingTop: 50,
+      paddingBottom: 50
     }
+
 })
 
 export default Home;

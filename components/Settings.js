@@ -324,7 +324,7 @@ class Settings extends Component {
                     </View>
 
                     </View>
-
+                    <View style={{height: 25}}></View>
                     <View style={styles.potContainer}>
                     <Text style={styles.potText}>Pot 3 and 4</Text>
                     <Text style={styles.potInfo}>Plant Type</Text>
@@ -497,6 +497,8 @@ class Settings extends Component {
                     </View>
 
                     </View>
+
+                    <View style={{height: 25}}></View>
                 </ScrollView>
             );
         }
@@ -509,7 +511,7 @@ class Settings extends Component {
 const styles = StyleSheet.create({
     container: {
         alignItems: 'center',
-        backgroundColor: '#ffffff'
+        backgroundColor: "#ffffff"
     },
     potText: {
         paddingTop: 0,
