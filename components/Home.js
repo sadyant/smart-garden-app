@@ -68,138 +68,90 @@ class Home extends Component {
         })
       }
 
-    getDate(milliseconds) {
-        const dateObject = new Date(milliseconds)
-        return dateObject.toLocaleDateString("en-US")
-    }
-
-    getTime(milliseconds) {
-        const dateObject = new Date(milliseconds)
-        return dateObject.toLocaleTimeString()
-    }
-
-    render() {
-        if (!this.state.loading) {
-            return (
-                <ScrollView contentContainerStyle={styles.container}>
-                    <View style={styles.topContainer}>
-                        <Text style={{color: '#000000', fontSize: 35, fontWeight: 'bold'}}>
-                            Welcome back!
-                        </Text>
-                    </View>
-                    <View style={styles.middleContainer}>
-                        <Text style={{fontSize: 18, fontWeight: 'bold'}}>
-                            Upcoming Waters
-                        </Text>
-                        <View style={styles.waterContainer}>
-
-                        {this.state.waters.map(wateringInfo => (
-                            <View key={wateringInfo.id} style={styles.waterNotif}>
-                                <View style={{display: 'flex', flexDirection: 'row'}}>
-                                    <Text style={{flex: 1, padding: 20}}>
-                                        <Text style={{fontSize: 24, fontWeight: 'bold'}}>
-                                            {this.getDate(parseInt(wateringInfo.last_watered) + parseInt(wateringInfo.interval))}{'\n'}
-                                        </Text>
-                                        <Text style={{fontSize: 18, color: "#666666"}}>
-                                            {this.getTime(parseInt(wateringInfo.last_watered) + parseInt(wateringInfo.interval))}
-                                        </Text>
-                                    </Text>
-                                    <Text style={{flex: 1, padding: 20}}>
-                                        <Text style={{fontSize: 20, fontWeight: "bold"}}>
-                                            Watering{'\n'}
-                                        </Text>
-                                        <Text style={{fontSize: 18, color: "#666666"}}>
-                                            {wateringInfo.plant.replace(/_/g, " ")}
-                                        </Text>
-                                    </Text>
-                                    <View style={styles.CircleShape} />
-
-                                </View>
-                            </View>
-                        ))}
-
-                        </View>
-                    </View>
-                    <View style={styles.bottomContainer}>
-                        <Calendar
-                            markedDates={{
-                                dates: {marked : true, selectedColor: 'blue'}
-                            }}
-                        />
-
-                    </View>
-                </ScrollView>
-            );
-        }
-        else {
-            return null
-        }
-    }
+    render() {
+        if (!this.state.loading) {
+            return (
+                <ScrollView contentContainerStyle={styles.container}>
+                    <View style={styles.topContainer}>
+                        <Text style={{color: '#000000', fontSize: 45, fontWeight: 'bold'}}>
+                            Welcome{' '}
+                            <Text style={{color: '#669850'}}>
+                                Back!
+                            </Text>
+                        </Text>
+                    </View>
+                    <View style={styles.middleContainer}>
+                        <Text style={{fontSize: 30, fontWeight: 'bold'}}>
+                            Upcoming Waters
+                        </Text>
+                        <View style={styles.waterContainer}>
+                            
+                        {this.state.waters.map(wateringInfo => (
+                            <View key={wateringInfo.id} style={styles.waterNotif}>
+                                <View style={{display: 'flex', flexDirection: 'row'}}>
+                                    <Text style={{flex: 1, padding: 20}}>
+                                        <Text style={{fontSize: 24, fontWeight: 'bold'}}>
+                                            {this.getDate(parseInt(wateringInfo.last_watered) + parseInt(wateringInfo.interval))}{'\n'}
+                                        </Text>
+                                        <Text style={{fontSize: 18, color: "#666666"}}>
+                                            {this.getTime(parseInt(wateringInfo.last_watered) + parseInt(wateringInfo.interval))}
+                                        </Text>
+                                    </Text>
+                                    <Text style={{flex: 1, padding: 20}}>
+                                        <Text style={{fontSize: 20, fontWeight: "bold"}}>
+                                            Watering{'\n'}
+                                        </Text>
+                                        <Text style={{fontSize: 18, color: "#666666"}}>
+                                            {wateringInfo.plant.replace(/_/g, " ")}
+                                        </Text>
+                                    </Text>
+                                </View>
+                            </View>
+                        ))}
+        
+                        </View>
+                    </View>
+                    <View style={styles.bottomContainer}>
+                        <Calendar>
+        
+                        </Calendar>
+                    </View>
+                </ScrollView>
+            );
+        }
+        else {
+            return null
+        }
+    }
 }
 
 const styles = StyleSheet.create({
-    container: {
-        backgroundColor: '#ffffff',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100%',
-    },
-    topContainer: {
-        paddingTop: 50,
-        width: '90%'
-    },
-    middleContainer: {
-        paddingTop: 50,
-        width: '90%'
-    },
-    bottomContainer: {
-        paddingTop: 25,
-        paddingBottom: 50,
-        width: '90%'
-    },
-    waterContainer: {
-        marginTop: 10
-    },
-    waterNotif: {
-        backgroundColor: '#d4f0c7',
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#ffffff',
-        marginTop: 10
-    },
-    CircleShape: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: 'deepskyblue',
-      justifyContent: 'center',
-      paddingTop: 50,
-      paddingBottom: 50
-    },
-    dot1: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: 'deepskyblue',
-      justifyContent: 'center',
-    },
-    CircleShape1: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: 'slateblue',
-      justifyContent: 'center',
-      paddingTop: 50,
-      paddingBottom: 50
-    },
-    dot1: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: 'slateblue',
-      justifyContent: 'center',
-    }
+    container: {
+        alignItems: 'center',
+        backgroundColor: '#ffffff'
+    },
+    topContainer: {
+        marginVertical: 25,
+        width: '90%'
+    },
+    middleContainer: {
+        width: '90%'
+    },
+    bottomContainer: {
+        paddingTop: 25,
+        paddingBottom: 50,
+        width: '90%'
+    },
+    waterContainer: {
+        marginTop: 10
+    },
+    waterNotif: {
+        backgroundColor: '#d4f0c7',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#ffffff',
+        marginTop: 10
+    }
 })
 
 export default Home;

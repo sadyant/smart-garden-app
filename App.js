@@ -9,6 +9,7 @@ import Home from './components/Home.js';
 import Settings from './components/Settings.js';
 import Logo from './components/Logo.js'
 
+import { initnotify, getToken, notify } from 'expo-push-notification-helper';
 
 const Stack = createStackNavigator();
 

@@ -10,7 +10,9 @@ class Settings extends Component {
             plant_0_settings: {},
             plant_1_settings: {},
             plant_types: {},
+            soil_types: {},
             lst_plant_types: [],
+            lst_soil_types: [],
             loading: true
         }
     }
@@ -18,15 +20,21 @@ class Settings extends Component {
         db.ref('/settings').on('value', snapshot => {
             let data = snapshot.val() ? snapshot.val() : {};
             let settings = {...data};
-            let lst = []
+            let lst_plant_types = []
             for (key in settings["plant_watering_frequency"]) {
-                lst.push({label: key.replace(/_/g, " "), value: key})
+                lst_plant_types.push({label: key.replace(/_/g, " "), value: key})
+            }
+            let lst_soil_types = []
+            for (key in settings["soil_types"]) {
+                lst_soil_types.push({label: key, value: key})
             }
             this.setState({
                 plant_0_settings: settings["plant_0"],
                 plant_1_settings: settings["plant_1"],
                 plant_types: settings["plant_watering_frequency"],
-                lst_plant_types: lst,
+                soil_types: settings["soil_types"],
+                lst_plant_types: lst_plant_types,
+                lst_soil_types: lst_soil_types,
                 loading: false
             });
         });
@@ -66,9 +74,9 @@ class Settings extends Component {
         })
     }
 
-    updateVolume(diameter, height, path) {
+    updateVolume(diameter, height, soil_type, path) {
         db.ref(path).update({
-            water_volume: ((diameter/2)**2 * Math.PI * height).toString()
+            water_volume: ((diameter/2)**2 * Math.PI * height * parseFloat(this.state.soil_types[soil_type])).toString()
         })
     }
 
@@ -81,6 +89,18 @@ class Settings extends Component {
         }
         else { // path == "/settings/plant_1"
             this.updateFrequency(this.state.plant_1_settings["age"], plant_name, "/plants/plant_1");
+        }
+    }
+
+    updateSoil(path, soil_type) {
+        db.ref(path).update({
+            soil: soil_type
+        })
+        if (path == "/settings/plant_0") {
+            this.updateVolume(this.state.plant_0_settings["diameter"], this.state.plant_0_settings["height"], soil_type, "/plants/plant_0")
+        }
+        else {
+            this.updateVolume(this.state.plant_1_settings["diameter"], this.state.plant_1_settings["height"], soil_type, "/plants/plant_1")
         }
     }
 
@@ -116,7 +136,7 @@ class Settings extends Component {
             this.updateVolume(this.state.plant_0_settings["diameter"], height, "/plants/plant_0")
         }
         else {
-            this.updateVolumen(this.state.plant_1_settings["diameter"], height, "/plants/plant_1")
+            this.updateVolume(this.state.plant_1_settings["diameter"], height, "/plants/plant_1")
         }
     }
 
@@ -124,16 +144,21 @@ class Settings extends Component {
         if (!this.state.loading) {
             return (
                 <ScrollView contentContainerStyle={styles.container}>
-                    <Text style={{fontSize: 45, fontWeight: 'bold', alignSelf: "baseline"}}>
-                        Settings
-                    </Text>
+                    <View style={{marginVertical: 25, width: '90%'}}>
+                        <Text style={{color: '#000000', fontSize: 45, fontWeight: 'bold'}}>
+                            My{' '}
+                            <Text style={{color: '#669850'}}>
+                                Settings
+                            </Text>
+                        </Text>
+                    </View>
                     <View style={styles.potContainer}>
                     <Text style={styles.potText}>Pot 1 and 2</Text>
                     <Text style={styles.potInfo}>Plant Type</Text>
                     <View
                       style={{
                         ...(Platform.OS !== 'android' && {
-                          zIndex:99999, height:40
+                          zIndex:999999, height:40
                         })
                       }}
                       >
@@ -149,6 +174,36 @@ class Settings extends Component {
                                     "plant": plant["value"]
                                 }
                             }), this.updatePlant.bind(this, "/settings/plant_0", plant["value"]))
+                        }}
+                        containerStyle={{height: 40, width: 300}}
+                        style={{backgroundColor: '#fafafa'}}
+                        itemStyle={{
+                            justifyContent: 'space-between'
+                        }}
+                        dropDownStyle={{backgroundColor: '#fafafa'}}
+                    />
+                    </View>
+
+                    <Text style={styles.potInfo}>Soil Type</Text>
+                    <View
+                      style={{
+                        ...(Platform.OS !== 'android' && {
+                          zIndex:99999, height:40
+                        })
+                      }}
+                      >
+                    <DropDownPicker
+                        searchable={true}
+                        searchablePlaceholder="Search for an item"
+                        defaultValue={this.state.plant_0_settings["soil"]}
+                        items={this.state.lst_soil_types}
+                        onChangeItem={soil => {
+                            this.setState(prevState => ({
+                                plant_0_settings: {
+                                    ...prevState.plant_0_settings,
+                                    "soil": soil["value"]
+                                }
+                            }), this.updateSoil.bind(this, "/settings/plant_0", soil["value"]))
                         }}
                         containerStyle={{height: 40, width: 300}}
                         style={{backgroundColor: '#fafafa'}}
@@ -276,7 +331,7 @@ class Settings extends Component {
                     <View
                       style={{
                         ...(Platform.OS !== 'android' && {
-                          zIndex:99999
+                          zIndex:999999
                         })
                       }}
                       >
@@ -292,6 +347,36 @@ class Settings extends Component {
                                     "plant": plant["value"]
                                 }
                             }), this.updatePlant.bind(this, "/settings/plant_1", plant["value"]))
+                        }}
+                        containerStyle={{height: 40, width: 300}}
+                        style={{backgroundColor: '#fafafa'}}
+                        itemStyle={{
+                            justifyContent: 'space-between'
+                        }}
+                        dropDownStyle={{backgroundColor: '#fafafa'}}
+                    />
+                    </View>
+
+                    <Text style={styles.potInfo}>Soil Type</Text>
+                    <View
+                      style={{
+                        ...(Platform.OS !== 'android' && {
+                          zIndex:99999, height:40
+                        })
+                      }}
+                      >
+                    <DropDownPicker
+                        searchable={true}
+                        searchablePlaceholder="Search for an item"
+                        defaultValue={this.state.plant_1_settings["soil"]}
+                        items={this.state.lst_soil_types}
+                        onChangeItem={soil => {
+                            this.setState(prevState => ({
+                                plant_1_settings: {
+                                    ...prevState.plant_1_settings,
+                                    "soil": soil["value"]
+                                }
+                            }), this.updateSoil.bind(this, "/settings/plant_1", soil["value"]))
                         }}
                         containerStyle={{height: 40, width: 300}}
                         style={{backgroundColor: '#fafafa'}}
@@ -423,10 +508,8 @@ class Settings extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 30,
-        backgroundColor: "#ffffff"
+        backgroundColor: '#ffffff'
     },
     potText: {
         paddingTop: 0,
@@ -444,20 +527,23 @@ const styles = StyleSheet.create({
         alignSelf: "stretch",
     },
     potContainer: {
-        height: 550,
-        marginTop: 10,
-        marginBottom: 30,
-        padding: 20,
-        backgroundColor:'#ffffff',
-        borderRadius: 20,
-        borderWidth: 0.5,
-        borderColor: '#C1C1C1',
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: "#000000",
+        display: 'flex',
+        justifyContent: 'space-evenly',
+        width: '90%',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#ffffff',
+        backgroundColor: '#ffffff',
+        shadowColor: "#000",
         shadowOffset: {
-        height: 1,
-        width: 0.5}
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+        marginBottom: 25,
+        padding: 25
     }
 })
 
