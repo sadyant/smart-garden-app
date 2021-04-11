@@ -3,7 +3,7 @@ import {Button, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, Saf
 import { Alert, Modal, Pressable } from "react-native";
 import Carousel from 'react-native-snap-carousel';
 import { db } from "../config";
-
+import { storage } from "../config";
 
 class Pots extends Component {
         constructor(props) {
@@ -13,13 +13,23 @@ class Pots extends Component {
             plant_1_settings: {},
             plant_types: {},
             lst_plant_types: [],
-            loading: true
+            loading: true,
+            profileImageUrl: '',
         }
+        let imageRef = storage.ref('/picture1.jpg');
+        imageRef.getDownloadURL().then((url) => {
+            this.setState({profileImageUrl: url});
+            console.log(url);
+        })
+        .catch((e) => console.log('getting downloadURL of image error => ', e));
     }
+    
     componentDidMount() {
         db.ref('/settings').on('value', snapshot => {
             let data = snapshot.val() ? snapshot.val() : {};
             let settings = {...data};
+            const {profileImageUrl} = this.state;
+
             this.setState({
                 plant_0_settings: settings["plant_0"],
                 plant_1_settings: settings["plant_1"],
@@ -74,6 +84,9 @@ class Pots extends Component {
         this.setState({ modalVisible: visible });
     }
 
+
+
+
     _renderItem({item,index}){
         return (
           <View style={{
@@ -85,7 +98,7 @@ class Pots extends Component {
               marginRight: 25, }}>
             <Text style={{fontSize: 20, textAlign: 'center', paddingBottom: 10, fontWeight: 'bold'}}>{item.title}</Text>
             <Image
-                source={require(`../assets/timed_pictures/Today.png`)}
+                source={{uri : this.state.profileImageUrl}}
                 style={{width: 175, height: 175, alignSelf: 'center'}}
                 resizeMode='contain'
             />
