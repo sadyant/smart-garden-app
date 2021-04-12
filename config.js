@@ -1,5 +1,5 @@
 import Firebase from 'firebase';
-import '@firebase/storage';
+import 'firebase/storage';
 let config = {
     apiKey: "AIzaSyDjzjozbOpUfT_Y7W1opUZIus0BOUlDmHE",
     authDomain: "smart-garden-db.firebaseapp.com",
